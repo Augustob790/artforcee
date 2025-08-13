@@ -1,19 +1,18 @@
+// ignore_for_file: unused_field
 import 'package:flutter/material.dart';
 import '../controllers/quote_controller.dart';
-import '../widgets/product_selector_widget.dart';
 import '../widgets/dynamic_form_widget.dart';
+import '../widgets/product_selector_widget.dart';
 import '../widgets/quote_summary_widget.dart';
 import 'quotes_list_screen.dart';
 
-/// Tela principal da aplicação
-/// Demonstra o formulário dinâmico e estados interdependentes
 class HomeScreen extends StatefulWidget {
   final QuoteController quoteController;
 
   const HomeScreen({
-    Key? key,
+    super.key,
     required this.quoteController,
-  }) : super(key: key);
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -102,21 +101,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Seletor de produtos
           ProductSelectorWidget(
             quoteController: widget.quoteController,
             onProductSelected: (product) {
-              // Produto selecionado, o formulário será atualizado automaticamente
             },
           ),
-          
+
           const SizedBox(height: 16),
-          
-          // Formulário dinâmico e resumo lado a lado em telas grandes
+
           LayoutBuilder(
             builder: (context, constraints) {
               if (constraints.maxWidth > 800) {
-                // Layout desktop - lado a lado
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -132,7 +127,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ],
                 );
               } else {
-                // Layout mobile - empilhado
                 return Column(
                   children: [
                     _buildFormSection(),
@@ -150,7 +144,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   Widget _buildFormSection() {
     final formController = widget.quoteController.currentFormController;
-    
+
     if (formController == null) {
       return Card(
         child: Padding(
@@ -202,7 +196,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             DynamicFormWidget(
               formController: formController,
               onChanged: () {
-                // Formulário mudou, o resumo será atualizado automaticamente
               },
             ),
           ],
@@ -215,7 +208,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return QuoteSummaryWidget(
       quoteController: widget.quoteController,
       onCreateQuote: () {
-        // Muda para a aba de orçamentos após criar
         _tabController.animateTo(1);
       },
     );
@@ -239,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _showStatistics() {
     final stats = widget.quoteController.getQuoteStatistics();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -252,19 +244,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               _buildStatRow('Total de Orçamentos:', '${stats['totalQuotes']}'),
               _buildStatRow('Valor Total:', 'R\$ ${stats['totalValue'].toStringAsFixed(2)}'),
               _buildStatRow('Valor Médio:', 'R\$ ${stats['averageValue'].toStringAsFixed(2)}'),
-              if (stats['mostUsedProduct'] != null)
-                _buildStatRow('Produto Mais Usado:', '${stats['mostUsedProduct']}'),
-              
+              if (stats['mostUsedProduct'] != null) _buildStatRow('Produto Mais Usado:', '${stats['mostUsedProduct']}'),
               const SizedBox(height: 16),
               Text(
                 'Distribuição por Tipo:',
                 style: Theme.of(context).textTheme.titleSmall,
               ),
               const SizedBox(height: 8),
-              
               ...((stats['productTypeDistribution'] as Map<String, int>).entries.map(
-                (entry) => _buildStatRow('${entry.key}:', '${entry.value}'),
-              )),
+                    (entry) => _buildStatRow('${entry.key}:', '${entry.value}'),
+                  )),
             ],
           ),
         ),
@@ -295,4 +284,3 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 }
-

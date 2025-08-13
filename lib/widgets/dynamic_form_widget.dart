@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/fields/form_field.dart' as model;
+
 import '../controllers/form_controller.dart';
+import '../mixins/formatter_mixin.dart';
+import '../models/fields/form_field.dart' as model;
 
 /// Widget de formulário dinâmico que se reconstrói baseado no tipo de produto
 /// Implementa Factory Pattern para criação de widgets específicos
@@ -9,16 +11,16 @@ class DynamicFormWidget extends StatefulWidget {
   final VoidCallback? onChanged;
 
   const DynamicFormWidget({
-    Key? key,
+    super.key,
     required this.formController,
     this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<DynamicFormWidget> createState() => _DynamicFormWidgetState();
 }
 
-class _DynamicFormWidgetState extends State<DynamicFormWidget> {
+class _DynamicFormWidgetState extends State<DynamicFormWidget> with FormatterMixin {
   @override
   void initState() {
     super.initState();
@@ -44,9 +46,8 @@ class _DynamicFormWidgetState extends State<DynamicFormWidget> {
       );
     }
 
-    final visibleFields = widget.formController.fields
-        .where((field) => widget.formController.isFieldVisible(field.name))
-        .toList();
+    final visibleFields =
+        widget.formController.fields.where((field) => widget.formController.isFieldVisible(field.name)).toList();
 
     if (visibleFields.isEmpty) {
       return const Center(
@@ -68,7 +69,7 @@ class _DynamicFormWidgetState extends State<DynamicFormWidget> {
   Widget _buildFieldWidget(model.FormField field) {
     final factory = FieldWidgetFactory();
     final fieldWidget = factory.createWidget(field, widget.formController);
-    
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: fieldWidget,
@@ -78,7 +79,7 @@ class _DynamicFormWidgetState extends State<DynamicFormWidget> {
   /// Constrói um resumo dos erros de validação
   Widget _buildErrorSummary() {
     final errors = widget.formController.allErrors;
-    
+
     if (errors.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -105,12 +106,12 @@ class _DynamicFormWidgetState extends State<DynamicFormWidget> {
             ),
             const SizedBox(height: 8),
             ...errors.map((error) => Padding(
-              padding: const EdgeInsets.only(left: 32.0, bottom: 4.0),
-              child: Text(
-                '• $error',
-                style: TextStyle(color: Colors.red.shade700),
-              ),
-            )),
+                  padding: const EdgeInsets.only(left: 32.0, bottom: 4.0),
+                  child: Text(
+                    '• $error',
+                    style: TextStyle(color: Colors.red.shade700),
+                  ),
+                )),
           ],
         ),
       ),
@@ -176,10 +177,10 @@ class DynamicTextFieldWidget extends StatelessWidget {
   final FormController controller;
 
   const DynamicTextFieldWidget({
-    Key? key,
+    super.key,
     required this.field,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -197,9 +198,7 @@ class DynamicTextFieldWidget extends StatelessWidget {
         helperText: field.helpText,
         errorText: hasError ? errors.first : null,
         border: const OutlineInputBorder(),
-        suffixIcon: field.isRequired 
-          ? const Icon(Icons.star, color: Colors.red, size: 12)
-          : null,
+        suffixIcon: field.isRequired ? const Icon(Icons.star, color: Colors.red, size: 12) : null,
       ),
       onChanged: (value) => controller.updateField(field.name, value),
       validator: (value) {
@@ -216,10 +215,10 @@ class DynamicNumberFieldWidget extends StatelessWidget {
   final FormController controller;
 
   const DynamicNumberFieldWidget({
-    Key? key,
+    super.key,
     required this.field,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -230,28 +229,20 @@ class DynamicNumberFieldWidget extends StatelessWidget {
     return TextFormField(
       initialValue: value?.toString() ?? '',
       enabled: field.isEnabled,
-      keyboardType: field.isInteger 
-        ? TextInputType.number 
-        : const TextInputType.numberWithOptions(decimal: true),
+      keyboardType: field.isInteger ? TextInputType.number : const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         labelText: field.label,
         helperText: field.helpText,
         errorText: hasError ? errors.first : null,
         border: const OutlineInputBorder(),
-        suffixIcon: field.isRequired 
-          ? const Icon(Icons.star, color: Colors.red, size: 12)
-          : null,
+        suffixIcon: field.isRequired ? const Icon(Icons.star, color: Colors.red, size: 12) : null,
       ),
       onChanged: (value) {
-        final numValue = field.isInteger 
-          ? int.tryParse(value)
-          : double.tryParse(value);
+        final numValue = field.isInteger ? int.tryParse(value) : double.tryParse(value);
         controller.updateField(field.name, numValue);
       },
       validator: (value) {
-        final numValue = field.isInteger 
-          ? int.tryParse(value ?? '')
-          : double.tryParse(value ?? '');
+        final numValue = field.isInteger ? int.tryParse(value ?? '') : double.tryParse(value ?? '');
         final fieldErrors = field.validate(numValue);
         return fieldErrors.isNotEmpty ? fieldErrors.first : null;
       },
@@ -265,10 +256,10 @@ class DynamicDropdownWidget extends StatelessWidget {
   final FormController controller;
 
   const DynamicDropdownWidget({
-    Key? key,
+    super.key,
     required this.field,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -283,9 +274,7 @@ class DynamicDropdownWidget extends StatelessWidget {
         helperText: field.helpText,
         errorText: hasError ? errors.first : null,
         border: const OutlineInputBorder(),
-        suffixIcon: field.isRequired 
-          ? const Icon(Icons.star, color: Colors.red, size: 12)
-          : null,
+        suffixIcon: field.isRequired ? const Icon(Icons.star, color: Colors.red, size: 12) : null,
       ),
       items: field.options
           .where((option) => option.isEnabled)
@@ -294,9 +283,7 @@ class DynamicDropdownWidget extends StatelessWidget {
                 child: Text(option.label),
               ))
           .toList(),
-      onChanged: field.isEnabled 
-        ? (value) => controller.updateField(field.name, value)
-        : null,
+      onChanged: field.isEnabled ? (value) => controller.updateField(field.name, value) : null,
       validator: (value) {
         final fieldErrors = field.validate(value);
         return fieldErrors.isNotEmpty ? fieldErrors.first : null;
@@ -306,15 +293,15 @@ class DynamicDropdownWidget extends StatelessWidget {
 }
 
 /// Widget para campo de data dinâmico
-class DynamicDateFieldWidget extends StatelessWidget {
+class DynamicDateFieldWidget extends StatelessWidget with FormatterMixin {
   final model.DateFormField field;
   final FormController controller;
 
   const DynamicDateFieldWidget({
-    Key? key,
+    super.key,
     required this.field,
     required this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -323,9 +310,11 @@ class DynamicDateFieldWidget extends StatelessWidget {
     final hasError = errors.isNotEmpty;
 
     return TextFormField(
-      initialValue: value != null ? _formatDate(value) : '',
       enabled: field.isEnabled,
       readOnly: true,
+      controller: TextEditingController(
+        text: controller.deliveryDate == null ? '' : formatDate(controller.deliveryDate!),
+      ),
       decoration: InputDecoration(
         labelText: field.label,
         helperText: field.helpText,
@@ -334,8 +323,7 @@ class DynamicDateFieldWidget extends StatelessWidget {
         suffixIcon: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            if (field.isRequired)
-              const Icon(Icons.star, color: Colors.red, size: 12),
+            if (field.isRequired) const Icon(Icons.star, color: Colors.red, size: 12),
             const Icon(Icons.calendar_today),
           ],
         ),
@@ -349,23 +337,15 @@ class DynamicDateFieldWidget extends StatelessWidget {
   }
 
   Future<void> _selectDate(BuildContext context) async {
-    final currentValue = controller.getFieldValue<DateTime>(field.name);
-    final initialDate = currentValue ?? DateTime.now();
-    
     final selectedDate = await showDatePicker(
       context: context,
-      initialDate: initialDate,
-      firstDate: field.minDate ?? DateTime(1900),
-      lastDate: field.maxDate ?? DateTime(2100),
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
     );
 
     if (selectedDate != null) {
       controller.updateField(field.name, selectedDate);
     }
   }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
 }
-

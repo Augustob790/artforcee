@@ -1,10 +1,12 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 
 import '../controllers/form_controller.dart';
 import '../controllers/quote_controller.dart';
 import '../mixins/formatter_mixin.dart';
+import 'utils/quote_utils.dart';
 
-/// Widget que exibe o resumo do orçamento atual
 class QuoteSummaryWidget extends StatefulWidget {
   final QuoteController quoteController;
   final VoidCallback? onCreateQuote;
@@ -36,7 +38,7 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
 
   void _onControllerChanged() {
     setState(() {});
-    
+
     // Atualiza listener do form controller se mudou
     final newController = widget.quoteController.currentFormController;
     if (newController != null) {
@@ -136,8 +138,8 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
           Text(
             'Produto Selecionado',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -154,7 +156,7 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
             children: [
               Chip(
                 label: Text(product.type.displayName),
-                backgroundColor: _getTypeColor(product.type.displayName).withOpacity(0.1),
+                backgroundColor: QuoteUtils.getTypeColor(product.type).withOpacity(0.1),
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
               const SizedBox(width: 8),
@@ -187,14 +189,14 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
         Text(
           'Configurações',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 8),
         ...visibleFields.map((field) {
           final value = formData[field.name];
-          final displayValue = _formatFieldValue(field.name, value);
-          
+          final displayValue = formatFieldValue(field.name, value);
+
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 2.0),
             child: Row(
@@ -211,8 +213,8 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
                   child: Text(
                     displayValue,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
+                          fontWeight: FontWeight.w500,
+                        ),
                   ),
                 ),
               ],
@@ -245,32 +247,32 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
           Text(
             'Detalhes do Preço',
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 12),
-          
+
           // Preço unitário
           _buildPriceRow(
             'Preço unitário:',
             formatCurrency(basePrice),
             isSubtotal: true,
           ),
-          
+
           // Quantidade
           _buildPriceRow(
             'Quantidade:',
             formatNumber(quantity),
             isSubtotal: true,
           ),
-          
+
           // Subtotal
           _buildPriceRow(
             'Subtotal:',
             formatCurrency(totalBasePrice),
             isSubtotal: true,
           ),
-          
+
           // Desconto ou taxa adicional
           if (hasDiscount)
             _buildPriceRow(
@@ -279,7 +281,7 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
               color: Colors.green.shade700,
               isSubtotal: true,
             ),
-          
+
           if (hasSurcharge)
             _buildPriceRow(
               'Taxa adicional:',
@@ -287,9 +289,9 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
               color: Colors.orange.shade700,
               isSubtotal: true,
             ),
-          
+
           const Divider(),
-          
+
           // Total final
           _buildPriceRow(
             'Total Final:',
@@ -316,18 +318,18 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
             child: Text(
               label,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                fontWeight: isFinal ? FontWeight.bold : FontWeight.normal,
-                fontSize: isFinal ? 16 : null,
-              ),
+                    fontWeight: isFinal ? FontWeight.bold : FontWeight.normal,
+                    fontSize: isFinal ? 16 : null,
+                  ),
             ),
           ),
           Text(
             value,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: isFinal ? FontWeight.bold : FontWeight.w500,
-              fontSize: isFinal ? 16 : null,
-              color: color ?? (isFinal ? Colors.green.shade700 : null),
-            ),
+                  fontWeight: isFinal ? FontWeight.bold : FontWeight.w500,
+                  fontSize: isFinal ? 16 : null,
+                  color: color ?? (isFinal ? Colors.green.shade700 : null),
+                ),
           ),
         ],
       ),
@@ -366,7 +368,6 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
               ],
             ),
           ),
-        
         ElevatedButton.icon(
           onPressed: canSubmit ? _createQuote : null,
           icon: const Icon(Icons.add_shopping_cart),
@@ -375,9 +376,7 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
             padding: const EdgeInsets.symmetric(vertical: 16.0),
           ),
         ),
-        
         const SizedBox(height: 8),
-        
         OutlinedButton.icon(
           onPressed: () => _recalculatePrice(formController),
           icon: const Icon(Icons.refresh),
@@ -387,50 +386,20 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
     );
   }
 
-  String _formatFieldValue(String fieldName, dynamic value) {
-    if (value == null) return 'Não informado';
-    
-    switch (fieldName) {
-      case 'quantity':
-        return formatNumber(value as num);
-      case 'deliveryDate':
-        return formatDate(value as DateTime);
-      case 'voltage':
-        return '${value}V';
-      case 'powerConsumption':
-        return '${value}kW';
-      case 'warranty':
-        return formatDays((value as int) * 30);
-      default:
-        return value.toString();
-    }
-  }
-
-  Color _getTypeColor(dynamic type) {
-    switch (type) {
-      case 'Industrial':
-        return Colors.orange;
-      case 'Residential':
-        return Colors.blue;
-      case 'Corporativo':
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
-  }
-
   Future<void> _createQuote() async {
     final quote = await widget.quoteController.createQuote();
-    
+
     if (quote != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Orçamento criado com sucesso! Total: ${formatCurrency(quote.finalPrice)}'),
           backgroundColor: Colors.green,
-          action: widget.onCreateQuote != null ? SnackBarAction(
-            label: 'Ver Orçamentos',
-            onPressed: widget.onCreateQuote!,
-          ) : null,
+          action: widget.onCreateQuote != null
+              ? SnackBarAction(
+                  label: 'Ver Orçamentos',
+                  onPressed: widget.onCreateQuote!,
+                )
+              : null,
         ),
       );
     }
@@ -438,7 +407,7 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
 
   Future<void> _recalculatePrice(FormController formController) async {
     await formController.calculateFinalPrice();
-    
+
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -449,4 +418,3 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
     }
   }
 }
-

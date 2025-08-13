@@ -1,7 +1,11 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
+import 'package:orcamentos_dinamicos/mixins/formatter_mixin.dart';
 
 import '../controllers/quote_controller.dart';
 import '../models/products/product.dart';
+import 'utils/quote_utils.dart';
 
 /// Widget para seleção de produtos com filtros e busca
 class ProductSelectorWidget extends StatefulWidget {
@@ -103,11 +107,7 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
   }
 
   Widget _buildFilters() {
-    final categories = widget.quoteController.availableProducts
-        .map((p) => p.category)
-        .toSet()
-        .toList()
-      ..sort();
+    final categories = widget.quoteController.availableProducts.map((p) => p.category).toSet().toList()..sort();
 
     return Card(
       child: Padding(
@@ -120,7 +120,7 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-            
+
             // Campo de busca
             TextField(
               controller: _searchController,
@@ -136,12 +136,12 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                 });
               },
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             Row(
               children: [
-                 Expanded(
+                Expanded(
                   child: DropdownButtonFormField<ProductType?>(
                     isExpanded: true,
                     value: _selectedType,
@@ -155,9 +155,9 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                         child: Text('Todos os tipos'),
                       ),
                       ...ProductType.values.map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type.displayName),
-                      )),
+                            value: type,
+                            child: Text(type.displayName),
+                          )),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -167,9 +167,9 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                     },
                   ),
                 ),
-                
+
                 const SizedBox(width: 16),
-                
+
                 // Filtro por categoria
                 Expanded(
                   child: DropdownButtonFormField<String?>(
@@ -185,9 +185,9 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                         child: Text('Todas as categorias'),
                       ),
                       ...categories.map((category) => DropdownMenuItem(
-                        value: category,
-                        child: Text(category),
-                      )),
+                            value: category,
+                            child: Text(category),
+                          )),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -199,9 +199,9 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             // Botão limpar filtros
             TextButton.icon(
               onPressed: () {
@@ -302,7 +302,7 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
 }
 
 /// Tile individual para exibir um produto
-class ProductTile extends StatelessWidget {
+class ProductTile extends StatelessWidget with FormatterMixin {
   final Product product;
   final bool isSelected;
   final VoidCallback? onTap;
@@ -319,9 +319,9 @@ class ProductTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.all(16.0),
       leading: CircleAvatar(
-        backgroundColor: _getTypeColor(product.type),
+        backgroundColor: QuoteUtils.getTypeColor(product.type),
         child: Icon(
-          _getTypeIcon(product.type),
+          QuoteUtils.getTypeIcon(product.type),
           color: Colors.white,
         ),
       ),
@@ -344,7 +344,7 @@ class ProductTile extends StatelessWidget {
                     product.type.displayName,
                     style: const TextStyle(fontSize: 12),
                   ),
-                  backgroundColor: _getTypeColor(product.type).withOpacity(0.1),
+                  backgroundColor: QuoteUtils.getTypeColor(product.type).withOpacity(0.1),
                   materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
               ),
@@ -368,11 +368,11 @@ class ProductTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
-            _formatCurrency(product.basePrice),
+            formatCurrency(product.basePrice),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              color: Colors.green.shade700,
-            ),
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green.shade700,
+                ),
           ),
           if (isSelected)
             Icon(
@@ -387,31 +387,4 @@ class ProductTile extends StatelessWidget {
       onTap: onTap,
     );
   }
-
-  String _formatCurrency(double value) {
-    return 'R\$ ${value.toStringAsFixed(2).replaceAll('.', ',')}';
-  }
-
-  Color _getTypeColor(ProductType type) {
-    switch (type) {
-      case ProductType.industrial:
-        return Colors.orange;
-      case ProductType.residential:
-        return Colors.blue;
-      case ProductType.corporate:
-        return Colors.purple;
-    }
-  }
-
-  IconData _getTypeIcon(ProductType type) {
-    switch (type) {
-      case ProductType.industrial:
-        return Icons.precision_manufacturing;
-      case ProductType.residential:
-        return Icons.home;
-      case ProductType.corporate:
-        return Icons.business;
-    }
-  }
 }
-

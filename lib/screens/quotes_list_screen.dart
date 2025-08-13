@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../controllers/quote_controller.dart';
 import '../mixins/formatter_mixin.dart';
+import '../widgets/utils/quote_utils.dart';
 
-/// Tela que exibe a lista de orçamentos criados
 class QuotesListScreen extends StatefulWidget {
   final QuoteController quoteController;
 
@@ -107,17 +107,15 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
   Widget _buildQuotesList(List<Quote> quotes) {
     return Column(
       children: [
-        // Cabeçalho com estatísticas
         _buildHeader(quotes),
-        
-        // Lista de orçamentos
+
         Expanded(
           child: ListView.separated(
             padding: const EdgeInsets.all(16.0),
             itemCount: quotes.length,
             separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
-              final quote = quotes[quotes.length - 1 - index]; // Mais recentes primeiro
+              final quote = quotes[quotes.length - 1 - index];
               return _buildQuoteCard(quote, index);
             },
           ),
@@ -210,7 +208,7 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
       elevation: 2,
       child: ExpansionTile(
         leading: CircleAvatar(
-          backgroundColor: _getTypeColor(quote.product.type),
+          backgroundColor: QuoteUtils.getTypeColor(quote.product.type),
           child: Text(
             '${index + 1}',
             style: const TextStyle(
@@ -287,7 +285,6 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
               children: [
                 _buildQuoteDetails(quote),
                 const SizedBox(height: 16),
-                _buildAppliedRules(quote),
               ],
             ),
           ),
@@ -303,8 +300,8 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
         Text(
           'Detalhes da Configuração',
           style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 8),
         Container(
@@ -316,7 +313,7 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
           ),
           child: Column(
             children: quote.formData.entries.map((entry) {
-              final displayValue = _formatFieldValue(entry.key, entry.value);
+              final displayValue = formatFieldValue(entry.key, entry.value);
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 2.0),
                 child: Row(
@@ -324,7 +321,7 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
                     Expanded(
                       flex: 2,
                       child: Text(
-                        '${_getFieldLabel(entry.key)}:',
+                        '${getFieldLabel(entry.key)}:',
                         style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
                     ),
@@ -340,100 +337,6 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
         ),
       ],
     );
-  }
-
-  Widget _buildAppliedRules(Quote quote) {
-    if (quote.appliedRules.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Regras Aplicadas',
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 4,
-          children: quote.appliedRules.map((rule) => Chip(
-            label: Text(
-              rule,
-              style: const TextStyle(fontSize: 12),
-            ),
-            backgroundColor: Colors.green.shade100,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          )).toList(),
-        ),
-      ],
-    );
-  }
-
-  Color _getTypeColor(dynamic type) {
-    switch (type.name) {
-      case 'industrial':
-        return Colors.orange;
-      case 'residential':
-        return Colors.blue;
-      case 'corporate':
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getFieldLabel(String fieldName) {
-    switch (fieldName) {
-      case 'quantity':
-        return 'Quantidade';
-      case 'deliveryDate':
-        return 'Data de Entrega';
-      case 'voltage':
-        return 'Voltagem';
-      case 'certification':
-        return 'Certificação';
-      case 'powerConsumption':
-        return 'Consumo de Energia';
-      case 'color':
-        return 'Cor';
-      case 'warranty':
-        return 'Garantia';
-      case 'energyRating':
-        return 'Classificação Energética';
-      case 'licenseType':
-        return 'Tipo de Licença';
-      case 'supportLevel':
-        return 'Nível de Suporte';
-      case 'maxUsers':
-        return 'Máximo de Usuários';
-      default:
-        return fieldName;
-    }
-  }
-
-  String _formatFieldValue(String fieldName, dynamic value) {
-    if (value == null) return 'Não informado';
-    
-    switch (fieldName) {
-      case 'quantity':
-        return formatNumber(value as num);
-      case 'deliveryDate':
-        return formatDate(DateTime.parse(value.toString()));
-      case 'voltage':
-        return '${value}V';
-      case 'powerConsumption':
-        return '${value}kW';
-      case 'warranty':
-        return formatDays((value as int) * 30);
-      case 'maxUsers':
-        return formatNumber(value as num);
-      default:
-        return value.toString();
-    }
   }
 
   void _handleMenuAction(String action) {
@@ -460,8 +363,6 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
 
   void _exportQuotes() {
     final data = widget.quoteController.exportQuotes();
-    
-    // Em uma implementação real, isso salvaria em um arquivo
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -551,9 +452,11 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
               Text('Valor Final: ${formatCurrency(quote.finalPrice)}'),
               const SizedBox(height: 16),
               const Text('Configurações:', style: TextStyle(fontWeight: FontWeight.bold)),
-              ...quote.formData.entries.map((entry) => Text(
-                '${_getFieldLabel(entry.key)}: ${_formatFieldValue(entry.key, entry.value)}',
-              )),
+              ...quote.formData.entries.map(
+                (entry) => Text(
+                  '${getFieldLabel(entry.key)}: ${formatFieldValue(entry.key, entry.value)}',
+                ),
+              ),
             ],
           ),
         ),
@@ -567,4 +470,3 @@ class _QuotesListScreenState extends State<QuotesListScreen> with FormatterMixin
     );
   }
 }
-

@@ -1,11 +1,17 @@
 import 'package:flutter/foundation.dart';
-import '../models/products/product.dart';
-import '../models/rules/business_rule.dart';
-import '../repositories/repository.dart';
-import '../services/rules_engine.dart';
-import '../services/factory_service.dart';
+
 import '../mixins/calculator_mixin.dart';
 import '../mixins/formatter_mixin.dart';
+import '../models/products/corporate_product.dart';
+import '../models/products/industrial_product.dart';
+import '../models/products/product.dart';
+import '../models/products/residential_product.dart';
+import '../models/rules/business_rule.dart';
+import '../repositories/product_repository.dart';
+import '../repositories/repository.dart';
+import '../repositories/rule_repository.dart';
+import '../services/factory_service.dart';
+import '../services/rules_engine.dart';
 import 'form_controller.dart';
 
 /// Modelo para representar um orçamento
@@ -15,7 +21,7 @@ class Quote {
   final Map<String, dynamic> formData;
   final double finalPrice;
   final DateTime createdAt;
-  final List<String> appliedRules;
+  //final List<String> appliedRules;
 
   Quote({
     required this.id,
@@ -23,7 +29,7 @@ class Quote {
     required this.formData,
     required this.finalPrice,
     required this.createdAt,
-    required this.appliedRules,
+    // required this.appliedRules,
   });
 
   Map<String, dynamic> toMap() {
@@ -33,7 +39,7 @@ class Quote {
       'formData': formData,
       'finalPrice': finalPrice,
       'createdAt': createdAt.toIso8601String(),
-      'appliedRules': appliedRules,
+      // 'appliedRules': appliedRules,
     };
   }
 }
@@ -45,12 +51,12 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
   final BusinessRuleRepository _ruleRepository;
   final FormFieldRepository _fieldRepository;
   final RulesEngine<BusinessRule> _rulesEngine;
-  
+
   // Controllers de formulário para diferentes tipos de produto
   late final FormController<IndustrialProduct> _industrialFormController;
   late final FormController<ResidentialProduct> _residentialFormController;
   late final FormController<CorporateProduct> _corporateFormController;
-  
+
   // Estado da aplicação
   final List<Product> _availableProducts = [];
   final List<Quote> _quotes = [];
@@ -79,7 +85,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
   /// Inicializa a aplicação
   Future<void> initialize() async {
     _setLoading(true);
-    
+
     try {
       await _loadProducts();
       await _initializeBusinessRules();
@@ -92,14 +98,14 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
   /// Seleciona um produto e inicializa o formulário correspondente
   Future<void> selectProduct(Product product) async {
     if (_selectedProduct == product) return;
-    
+
     _selectedProduct = product;
     _currentFormController = _getFormControllerForProduct(product);
-    
+
     if (_currentFormController != null) {
       await _currentFormController!.initializeForm(product as dynamic);
     }
-    
+
     notifyListeners();
   }
 
@@ -108,26 +114,29 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
     if (_currentFormController == null || _selectedProduct == null) {
       return null;
     }
-    
+
     final isValid = await _currentFormController!.validateForm();
     if (!isValid) {
       return null;
     }
-    
+
     final finalPrice = await _currentFormController!.calculateFinalPrice();
-    
+
     final quote = Quote(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       product: _selectedProduct!,
       formData: _currentFormController!.formData,
       finalPrice: finalPrice,
       createdAt: DateTime.now(),
-      appliedRules: await _getAppliedRuleNames(),
     );
-    
+
     _quotes.add(quote);
+    if (_currentFormController != null) {
+      _currentFormController!.resetForm();
+    }
+
     notifyListeners();
-    
+
     return quote;
   }
 
@@ -156,11 +165,11 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
   /// Busca produtos por termo
   List<Product> searchProducts(String searchTerm) {
     if (searchTerm.isEmpty) return _availableProducts;
-    
+
     return _availableProducts.where((product) {
       return product.name.toLowerCase().contains(searchTerm.toLowerCase()) ||
-             product.description.toLowerCase().contains(searchTerm.toLowerCase()) ||
-             product.category.toLowerCase().contains(searchTerm.toLowerCase());
+          product.description.toLowerCase().contains(searchTerm.toLowerCase()) ||
+          product.category.toLowerCase().contains(searchTerm.toLowerCase());
     }).toList();
   }
 
@@ -175,23 +184,21 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
         'productTypeDistribution': <String, int>{},
       };
     }
-    
+
     final totalValue = _quotes.fold<double>(0.0, (sum, quote) => sum + quote.finalPrice);
     final averageValue = totalValue / _quotes.length;
-    
+
     // Conta produtos mais usados
     final productCount = <String, int>{};
     final typeCount = <String, int>{};
-    
+
     for (final quote in _quotes) {
       productCount[quote.product.name] = (productCount[quote.product.name] ?? 0) + 1;
       typeCount[quote.product.type.displayName] = (typeCount[quote.product.type.displayName] ?? 0) + 1;
     }
-    
-    final mostUsedProduct = productCount.entries
-        .reduce((a, b) => a.value > b.value ? a : b)
-        .key;
-    
+
+    final mostUsedProduct = productCount.entries.reduce((a, b) => a.value > b.value ? a : b).key;
+
     return {
       'totalQuotes': _quotes.length,
       'totalValue': totalValue,
@@ -213,13 +220,13 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       _rulesEngine,
       _productRepository,
     );
-    
+
     _residentialFormController = FormController<ResidentialProduct>(
       _fieldRepository,
       _rulesEngine,
       _productRepository,
     );
-    
+
     _corporateFormController = FormController<CorporateProduct>(
       _fieldRepository,
       _rulesEngine,
@@ -242,7 +249,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
   /// Carrega produtos de exemplo
   Future<void> _loadProducts() async {
     final factory = ProductFactory();
-    
+
     // Produtos industriais
     final industrial1 = factory.createIndustrialProduct(
       id: 'ind_001',
@@ -254,7 +261,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       certification: 'ISO 9001',
       powerConsumption: 15.0,
     );
-    
+
     final industrial2 = factory.createIndustrialProduct(
       id: 'ind_002',
       name: 'Compressor Industrial',
@@ -265,7 +272,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       certification: '',
       powerConsumption: 25.0,
     );
-    
+
     // Produtos residenciais
     final residential1 = factory.createResidentialProduct(
       id: 'res_001',
@@ -277,7 +284,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       warranty: 24,
       energyRating: 'A',
     );
-    
+
     final residential2 = factory.createResidentialProduct(
       id: 'res_002',
       name: 'Geladeira Frost Free',
@@ -288,7 +295,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       warranty: 12,
       energyRating: 'B',
     );
-    
+
     // Produtos corporativos
     final corporate1 = factory.createCorporateProduct(
       id: 'corp_001',
@@ -300,7 +307,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       supportLevel: 'Advanced',
       maxUsers: 50,
     );
-    
+
     final corporate2 = factory.createCorporateProduct(
       id: 'corp_002',
       name: 'Plataforma CRM',
@@ -311,11 +318,11 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       supportLevel: 'Basic',
       maxUsers: 25,
     );
-    
+
     // Salva produtos no repositório
     final products = [industrial1, industrial2, residential1, residential2, corporate1, corporate2];
     await _productRepository.saveAll(products);
-    
+
     _availableProducts.clear();
     _availableProducts.addAll(products);
   }
@@ -323,7 +330,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
   /// Inicializa regras de negócio de exemplo
   Future<void> _initializeBusinessRules() async {
     final factory = BusinessRuleFactory();
-    
+
     // Regra de desconto por volume
     final volumeDiscountRule = factory.create({
       'id': 'volume_discount',
@@ -339,7 +346,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       'value': 15.0,
       'isPercentage': true,
     });
-    
+
     // Regra de taxa de urgência
     final urgencyFeeRule = factory.create({
       'id': 'urgency_fee',
@@ -355,7 +362,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       'value': 20.0,
       'isPercentage': true,
     });
-    
+
     // Regra de certificação obrigatória
     final certificationRule = factory.create({
       'id': 'certification_required',
@@ -372,7 +379,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       'validationType': 'required',
       'validationParams': {},
     });
-    
+
     // Regra de visibilidade para campos industriais
     final industrialFieldsRule = factory.create({
       'id': 'industrial_fields_visibility',
@@ -381,13 +388,11 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       'type': 'visibility',
       'priority': 1,
       'isActive': true,
-      'conditions': {
-        'productType': 'industrial'
-      },
+      'conditions': {'productType': 'industrial'},
       'targetFields': ['voltage', 'certification', 'powerConsumption'],
       'showFields': true,
     });
-    
+
     final rules = [volumeDiscountRule, urgencyFeeRule, certificationRule, industrialFieldsRule];
     await _ruleRepository.saveAll(rules);
   }
@@ -395,7 +400,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
   /// Inicializa campos de formulário de exemplo
   Future<void> _initializeFormFields() async {
     final factory = FormFieldFactory();
-    
+
     // Campos para produtos industriais
     final voltageField = factory.create({
       'id': 'voltage',
@@ -410,7 +415,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       'isInteger': true,
       'order': 10,
     });
-    
+
     final certificationField = factory.create({
       'id': 'certification',
       'name': 'certification',
@@ -421,7 +426,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       'maxLength': 100,
       'order': 11,
     });
-    
+
     final powerField = factory.create({
       'id': 'powerConsumption',
       'name': 'powerConsumption',
@@ -434,7 +439,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       'decimalPlaces': 1,
       'order': 12,
     });
-    
+
     // Campos para produtos residenciais
     final colorField = factory.create({
       'id': 'color',
@@ -452,7 +457,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       ],
       'order': 20,
     });
-    
+
     final warrantyField = factory.create({
       'id': 'warranty',
       'name': 'warranty',
@@ -466,7 +471,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       'isInteger': true,
       'order': 21,
     });
-    
+
     final energyRatingField = factory.create({
       'id': 'energyRating',
       'name': 'energyRating',
@@ -484,7 +489,7 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
       ],
       'order': 22,
     });
-    
+
     final fields = [voltageField, certificationField, powerField, colorField, warrantyField, energyRatingField];
     await _fieldRepository.saveAll(fields);
   }
@@ -492,14 +497,14 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
   /// Obtém nomes das regras aplicadas no contexto atual
   Future<List<String>> _getAppliedRuleNames() async {
     if (_currentFormController == null) return [];
-    
+
     final context = {
       ..._currentFormController!.formData,
       'product': _selectedProduct,
       'productType': _selectedProduct?.type.name,
       'currentPrice': _currentFormController!.currentPrice,
     };
-    
+
     final applicableRules = await _ruleRepository.findApplicableRules(context);
     return applicableRules.map((rule) => rule.name).toList();
   }
@@ -520,4 +525,3 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
     super.dispose();
   }
 }
-

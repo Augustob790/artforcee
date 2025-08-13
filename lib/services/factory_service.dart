@@ -1,7 +1,13 @@
 import '../models/base_model.dart';
 import '../models/fields/form_field.dart';
+import '../models/products/corporate_product.dart';
+import '../models/products/industrial_product.dart';
 import '../models/products/product.dart';
+import '../models/products/residential_product.dart';
 import '../models/rules/business_rule.dart';
+import '../models/rules/princing_rule.dart';
+import '../models/rules/validation_rule.dart';
+import '../models/rules/visibility_rule.dart';
 
 /// Serviço de fábrica genérico para criação dinâmica de objetos
 /// Implementa o padrão Factory Method com type safety

@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 
 import 'controllers/quote_controller.dart';
 import 'models/rules/business_rule.dart';
+import 'repositories/product_repository.dart';
 import 'repositories/repository.dart';
+import 'repositories/rule_repository.dart';
 import 'screens/home_screen.dart';
 import 'services/factory_service.dart';
 import 'services/rules_engine.dart';
 
 void main() {
-  // Inicializa as fábricas padrão
   FactoryRegistry.initializeDefaultFactories();
   
   runApp(const OrcamentosDinamicosApp());
