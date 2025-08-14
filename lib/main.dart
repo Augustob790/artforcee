@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../services/services.dart';
 import 'controllers/quote_controller.dart';
 import 'models/rules/business_rule.dart';
-import 'repositories/product_repository.dart';
-import 'repositories/repository.dart';
-import 'repositories/rule_repository.dart';
+import 'repositories/repositories.dart';
 import 'screens/home_screen.dart';
-import 'services/factory_service.dart';
-import 'services/rules_engine.dart';
 
 void main() {
   FactoryRegistry.initializeDefaultFactories();
-  
+
   runApp(const OrcamentosDinamicosApp());
 }
 
@@ -98,10 +95,10 @@ class _AppInitializerState extends State<AppInitializer> {
       final productRepository = ProductRepository();
       final ruleRepository = BusinessRuleRepository();
       final fieldRepository = FormFieldRepository();
-      
+
       // Inicializa engine de regras
       final rulesEngine = RulesEngine<BusinessRule>(ruleRepository);
-      
+
       // Inicializa controller principal
       _quoteController = QuoteController(
         productRepository,
@@ -109,10 +106,10 @@ class _AppInitializerState extends State<AppInitializer> {
         fieldRepository,
         rulesEngine,
       );
-      
+
       // Carrega dados iniciais
       await _quoteController.initialize();
-      
+
       setState(() {
         _isInitialized = true;
       });

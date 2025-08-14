@@ -1,7 +1,7 @@
 import '../base_model.dart';
-import 'corporate_product.dart';
-import 'industrial_product.dart';
-import 'residential_product.dart';
+import 'corporate_product_model.dart';
+import 'industrial_product_model.dart';
+import 'residential_product_model.dart';
 
 enum ProductType {
   industrial('Industrial'),

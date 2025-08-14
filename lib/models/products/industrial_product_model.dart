@@ -1,13 +1,8 @@
 import 'product.dart';
 
 class IndustrialProduct extends Product {
-  /// Voltagem do produto industrial
   final int voltage;
-  
-  /// Certificação necessária
   final String certification;
-  
-  /// Consumo de energia
   final double powerConsumption;
 
   IndustrialProduct({

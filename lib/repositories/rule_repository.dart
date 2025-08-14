@@ -1,4 +1,4 @@
-import '../models/rules/business_rule.dart';
+import '../models/models.dart';
 import 'repository.dart';
 
 /// Repositório específico para regras de negócio

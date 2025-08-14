@@ -2,9 +2,9 @@
 
 import 'package:flutter/material.dart';
 
-import '../controllers/form_controller.dart';
-import '../controllers/quote_controller.dart';
-import '../mixins/formatter_mixin.dart';
+import '../controllers/controllers.dart';
+import '../mixins/mixins.dart';
+import 'products/products.dart';
 import 'utils/quote_utils.dart';
 
 class QuoteSummaryWidget extends StatefulWidget {
@@ -56,7 +56,7 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
     final formController = widget.quoteController.currentFormController;
 
     if (selectedProduct == null || formController == null) {
-      return _buildEmptyState();
+      return const HeaderCard(isEmpty: true);
     }
 
     return Card(
@@ -74,34 +74,6 @@ class _QuoteSummaryWidgetState extends State<QuoteSummaryWidget> with FormatterM
             _buildPricingDetails(selectedProduct, formController),
             const SizedBox(height: 24),
             _buildActionButtons(formController),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhum produto selecionado',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Selecione um produto para ver o resumo do orçamento',
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
           ],
         ),
       ),

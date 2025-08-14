@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../controllers/quote_controller.dart';
-import '../mixins/formatter_mixin.dart';
+import '../mixins/mixins.dart';
+import '../models/quote/quote_model.dart';
 import '../widgets/utils/quote_utils.dart';
 
 class QuotesListScreen extends StatefulWidget {

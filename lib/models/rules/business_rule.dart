@@ -1,47 +1,15 @@
 // business_rule.dart
-import '../base_model.dart';
-
-/// Enumeração dos tipos de regra de negócio
-enum RuleType {
-  pricing('Preço'),
-  validation('Validação'),
-  visibility('Visibilidade');
-
-  const RuleType(this.displayName);
-  final String displayName;
-}
-
-/// Enumeração das prioridades das regras
-enum RulePriority {
-  low(1, 'Baixa'),
-  medium(2, 'Média'),
-  high(3, 'Alta'),
-  critical(4, 'Crítica');
-
-  const RulePriority(this.value, this.displayName);
-  final int value;
-  final String displayName;
-}
+import '../models.dart';
 
 /// Classe abstrata base para todas as regras de negócio
 /// Implementa o padrão Strategy para diferentes tipos de regras
 abstract class BusinessRule extends BaseModel {
-  /// Nome da regra
   final String name;
-
-  /// Descrição da regra
   final String description;
-
-  /// Tipo da regra
   final RuleType type;
-
-  /// Prioridade da regra (maior valor = maior prioridade)
   final RulePriority priority;
-
-  /// Se a regra está ativa
   final bool isActive;
 
-  /// Condições que devem ser atendidas para a regra ser aplicada
   final Map<String, dynamic> conditions;
 
   BusinessRule({
@@ -97,10 +65,9 @@ abstract class BusinessRule extends BaseModel {
         }
       }
     } else {
-      // Condição simples de igualdade
       return contextValue == conditionValue;
     }
-    return false; // Retorna falso se a condição não puder ser avaliada
+    return false;
   }
 
   /// Executa a regra e retorna o resultado

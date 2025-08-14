@@ -1,5 +1,4 @@
 /// Classe base abstrata para todos os modelos do sistema
-/// Fornece funcionalidades comuns como identificação única e serialização
 abstract class BaseModel {
   final String id;
   final DateTime createdAt;
@@ -16,7 +15,6 @@ abstract class BaseModel {
   Map<String, dynamic> toMap();
 
   /// Cria uma instância do modelo a partir de um Map
-  /// Deve ser implementado pelas classes filhas
   static BaseModel fromMap(Map<String, dynamic> map) {
     throw UnimplementedError('fromMap deve ser implementado pelas classes filhas');
   }

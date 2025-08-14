@@ -1,16 +1,5 @@
 import '../../mixins/calculator_mixin.dart';
-import 'business_rule.dart';
-
-/// Tipos de modificação de preço
-enum PricingModificationType {
-  discount('Desconto'),
-  surcharge('Taxa Adicional'),
-  multiplier('Multiplicador'),
-  fixed('Preço Fixo');
-
-  const PricingModificationType(this.displayName);
-  final String displayName;
-}
+import '../models.dart';
 
 /// Regra de preço - modifica o preço do produto
 class PricingRule extends BusinessRule with CalculatorMixin {
@@ -50,13 +39,12 @@ class PricingRule extends BusinessRule with CalculatorMixin {
           return calculateFixedSurcharge(currentPrice, value);
         }
       case PricingModificationType.multiplier:
-        return  currentPrice * value;
+        return currentPrice * value;
       case PricingModificationType.fixed:
         return value;
     }
   }
 
-  // O restante da classe (validateRule e toMap) permanece inalterado
   @override
   List<String> validateRule() {
     List<String> errors = [];

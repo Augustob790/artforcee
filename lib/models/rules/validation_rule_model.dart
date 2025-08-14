@@ -1,26 +1,9 @@
-import 'business_rule.dart';
-
-/// Tipos de validação
-enum ValidationType {
-  required('Obrigatório'),
-  minValue('Valor Mínimo'),
-  maxValue('Valor Máximo'),
-  pattern('Padrão'),
-  custom('Customizada');
-
-  const ValidationType(this.displayName);
-  final String displayName;
-}
+import '../models.dart';
 
 /// Regra de validação - valida dados do formulário
 class ValidationRule extends BusinessRule {
-  /// Campos que devem ser validados
   final List<String> targetFields;
-
-  /// Tipo de validação
   final ValidationType validationType;
-
-  /// Parâmetros específicos da validação
   final Map<String, dynamic> validationParams;
 
   ValidationRule({

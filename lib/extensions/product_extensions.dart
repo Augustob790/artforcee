@@ -1,4 +1,4 @@
-import '../models/products/industrial_product.dart';
+import '../models/products/industrial_product_model.dart';
 import '../models/products/product.dart';
 
 /// Extensions para produtos

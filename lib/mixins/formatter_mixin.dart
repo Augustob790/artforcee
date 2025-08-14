@@ -1,5 +1,4 @@
 /// Mixin que fornece funcionalidades de formatação reutilizáveis
-/// Implementa o princípio DRY para formatações comuns
 mixin FormatterMixin {
   /// Formata um valor monetário para exibição
   String formatCurrency(double value, {String symbol = 'R\$', int decimalPlaces = 2}) {

@@ -1,11 +1,10 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:orcamentos_dinamicos/mixins/formatter_mixin.dart';
 
 import '../controllers/quote_controller.dart';
 import '../models/products/product.dart';
-import 'utils/quote_utils.dart';
+import 'products/products.dart';
 
 /// Widget para seleção de produtos com filtros e busca
 class ProductSelectorWidget extends StatefulWidget {
@@ -48,6 +47,15 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
     });
   }
 
+  void _clearFilters() {
+    setState(() {
+      _searchController.clear();
+      _selectedType = null;
+      _selectedCategory = null;
+      _applyFilters();
+    });
+  }
+
   void _applyFilters() {
     var products = widget.quoteController.availableProducts;
 
@@ -75,34 +83,12 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildHeader(),
+        const HeaderCard(),
         const SizedBox(height: 16),
         _buildFilters(),
         const SizedBox(height: 16),
         _buildProductList(),
       ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Selecionar Produto',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Escolha um produto para criar um orçamento',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -120,8 +106,6 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 16),
-
-            // Campo de busca
             TextField(
               controller: _searchController,
               decoration: const InputDecoration(
@@ -136,9 +120,7 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                 });
               },
             ),
-
             const SizedBox(height: 16),
-
             Row(
               children: [
                 Expanded(
@@ -167,10 +149,7 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                     },
                   ),
                 ),
-
                 const SizedBox(width: 16),
-
-                // Filtro por categoria
                 Expanded(
                   child: DropdownButtonFormField<String?>(
                     isExpanded: true,
@@ -184,10 +163,12 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                         value: null,
                         child: Text('Todas as categorias'),
                       ),
-                      ...categories.map((category) => DropdownMenuItem(
-                            value: category,
-                            child: Text(category),
-                          )),
+                      ...categories.map(
+                        (category) => DropdownMenuItem(
+                          value: category,
+                          child: Text(category),
+                        ),
+                      ),
                     ],
                     onChanged: (value) {
                       setState(() {
@@ -199,19 +180,9 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
                 ),
               ],
             ),
-
             const SizedBox(height: 8),
-
-            // Botão limpar filtros
             TextButton.icon(
-              onPressed: () {
-                setState(() {
-                  _searchController.clear();
-                  _selectedType = null;
-                  _selectedCategory = null;
-                  _applyFilters();
-                });
-              },
+              onPressed: () => _clearFilters(),
               icon: const Icon(Icons.clear),
               label: const Text('Limpar Filtros'),
             ),
@@ -298,93 +269,5 @@ class _ProductSelectorWidgetState extends State<ProductSelectorWidget> {
   void _selectProduct(Product product) {
     widget.quoteController.selectProduct(product);
     widget.onProductSelected?.call(product);
-  }
-}
-
-/// Tile individual para exibir um produto
-class ProductTile extends StatelessWidget with FormatterMixin {
-  final Product product;
-  final bool isSelected;
-  final VoidCallback? onTap;
-
-  const ProductTile({
-    super.key,
-    required this.product,
-    this.isSelected = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: const EdgeInsets.all(16.0),
-      leading: CircleAvatar(
-        backgroundColor: QuoteUtils.getTypeColor(product.type),
-        child: Icon(
-          QuoteUtils.getTypeIcon(product.type),
-          color: Colors.white,
-        ),
-      ),
-      title: Text(
-        product.name,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(product.description),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Flexible(
-                child: Chip(
-                  label: Text(
-                    product.type.displayName,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  backgroundColor: QuoteUtils.getTypeColor(product.type).withOpacity(0.1),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Chip(
-                  label: Text(
-                    product.category,
-                    style: const TextStyle(fontSize: 12),
-                  ),
-                  backgroundColor: Colors.grey.shade200,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text(
-            formatCurrency(product.basePrice),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.green.shade700,
-                ),
-          ),
-          if (isSelected)
-            Icon(
-              Icons.check_circle,
-              color: Colors.green.shade700,
-              size: 20,
-            ),
-        ],
-      ),
-      selected: isSelected,
-      selectedTileColor: Colors.green.shade50,
-      onTap: onTap,
-    );
   }
 }
