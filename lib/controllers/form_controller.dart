@@ -1,4 +1,6 @@
-// ignore_for_file: avoid_shadowing_type_parameters
+// ignore_for_file: avoid_shadowing_type_parameters, unused_field, depend_on_referenced_packages
+
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 
 import '../mixins/calculator_mixin.dart';
@@ -22,7 +24,6 @@ class FormController<T extends Product> extends ChangeNotifier with ValidatorMix
 
   // Estado do produto e preço
   T? _selectedProduct;
-  DateTime? _deliveryDate;
   double _currentPrice = 0.0;
   bool _isLoading = false;
   bool _hasChanges = false;
@@ -30,7 +31,7 @@ class FormController<T extends Product> extends ChangeNotifier with ValidatorMix
   FormController(this._fieldRepository, this._rulesEngine, this._productRepository);
 
   // Getters
-  DateTime? get deliveryDate => _deliveryDate;
+  DateTime? get deliveryDate => getFieldValue<DateTime>('deliveryDate');
   Map<String, dynamic> get formData => Map.unmodifiable(_formData);
   Map<String, List<String>> get fieldErrors => Map.unmodifiable(_fieldErrors);
   Map<String, bool> get fieldVisibility => Map.unmodifiable(_fieldVisibility);
@@ -45,46 +46,29 @@ class FormController<T extends Product> extends ChangeNotifier with ValidatorMix
   /// Inicializa o formulário com um produto específico
   Future<void> initializeForm(T product) async {
     _setLoading(true);
+    _selectedProduct = product;
+    _currentPrice = product.basePrice;
 
     try {
-      _selectedProduct = product;
-      _currentPrice = product.basePrice;
-
-      // Carrega todos os campos de uma vez
       await _loadAllFields(product);
-
-      // Inicializa os dados do formulário com valores padrão
       _initializeFormData();
-
-      // Aplica regras iniciais
       await _applyRules();
-
-      _hasChanges = false;
-      notifyListeners();
     } finally {
+      _hasChanges = false;
       _setLoading(false);
     }
+    notifyListeners();
   }
 
   /// Atualiza o valor de um campo
   Future<void> updateField(String fieldName, dynamic value) async {
-    if (fieldName == "deliveryDate") {
-      _deliveryDate = value;
-    }
     if (_formData[fieldName] == value) return;
 
     _formData[fieldName] = value;
     _hasChanges = true;
 
-    // Limpa erros do campo
-    _fieldErrors[fieldName] = [];
-
-    // Valida o campo específico
     await _validateField(fieldName, value);
-
-    // Aplica regras que podem ser afetadas por esta mudança
     await _applyRules();
-
     notifyListeners();
   }
 
@@ -92,7 +76,6 @@ class FormController<T extends Product> extends ChangeNotifier with ValidatorMix
   Future<bool> validateForm() async {
     _fieldErrors.clear();
 
-    // Valida cada campo individualmente
     for (final field in _fields) {
       if (field.isVisible) {
         final value = _formData[field.name];
@@ -100,11 +83,9 @@ class FormController<T extends Product> extends ChangeNotifier with ValidatorMix
       }
     }
 
-    // Aplica regras de validação
     final context = _buildRuleContext();
     final result = await _rulesEngine.processRulesByType(RuleType.validation, context);
 
-    // Adiciona erros de validação das regras
     for (final error in result.validationErrors) {
       _addGlobalError(error);
     }
@@ -132,19 +113,11 @@ class FormController<T extends Product> extends ChangeNotifier with ValidatorMix
 
   /// Carrega todos os campos necessários para um produto (campos do produto + campos comuns)
   Future<void> _loadAllFields(T product) async {
-    // Combina os campos específicos do produto com os campos comuns
     final allRequiredFieldNames = product.getRequiredFields();
-
     _fields.clear();
-
-    // Carrega campos específicos e comuns de uma só vez
     final allFields = await _fieldRepository.findByNames(allRequiredFieldNames);
     _fields.addAll(allFields);
-
-    // Ordena campos por ordem de exibição
     _fields.sort((a, b) => a.order.compareTo(b.order));
-
-    // Inicializa visibilidade dos campos
     for (final field in _fields) {
       _fieldVisibility[field.name] = field.isVisible;
     }
@@ -161,59 +134,56 @@ class FormController<T extends Product> extends ChangeNotifier with ValidatorMix
 
   /// Valida um campo específico
   Future<void> _validateField(String fieldName, dynamic value) async {
-    final field = _fields.firstWhere(
-      (f) => f.name == fieldName,
-      orElse: () => throw ArgumentError('Campo não encontrado: $fieldName'),
-    );
-
-    final errors = field.validate(value);
-    _fieldErrors[fieldName] = errors;
+    final field = _fields.firstWhereOrNull((f) => f.name == fieldName);
+    if (field != null) {
+      final errors = field.validate(value);
+      _fieldErrors[fieldName] = errors;
+    }
   }
 
-  /// Aplica todas as regras relevantes
+  /// Aplica todas as regras relevantes, incluindo as de preço
   Future<void> _applyRules() async {
+    _fieldErrors.clear();
+
     final context = _buildRuleContext();
-    final result = await _rulesEngine.processRules(context);
 
-    // Atualiza preço se houver resultado de preço
-    if (result.finalPrice != null) {
-      _currentPrice = result.finalPrice!;
+    final validationResult = await _rulesEngine.processRulesByType(RuleType.validation, context);
+    for (final error in validationResult.validationErrors) {
+      _addGlobalError(error);
     }
-
-    // Atualiza visibilidade dos campos
-    final visibility = result.fieldVisibility;
-    for (final entry in visibility.entries) {
+    final visibilityResult = await _rulesEngine.processRulesByType(RuleType.visibility, context);
+    for (final entry in visibilityResult.fieldVisibility.entries) {
       _fieldVisibility[entry.key] = entry.value;
-
-      // Atualiza o campo correspondente
       final field = _fields.where((f) => f.name == entry.key).firstOrNull;
       if (field != null) {
         field.isVisible = entry.value;
       }
     }
 
-    // Adiciona erros de validação
-    for (final error in result.validationErrors) {
+    // Aplica as regras de preço
+    final pricingResult = await _rulesEngine.processRulesByType(RuleType.pricing, context);
+    if (pricingResult.finalPrice != null) {
+      _currentPrice = pricingResult.finalPrice!;
+    }
+    for (final error in validationResult.validationErrors) {
       _addGlobalError(error);
     }
+
+    calculateFinalPrice();
   }
 
   /// Constrói o contexto para as regras
   Map<String, dynamic> _buildRuleContext() {
     final context = Map<String, dynamic>.from(_formData);
-
     if (_selectedProduct != null) {
       context['product'] = _selectedProduct!;
       context['productType'] = _selectedProduct!.type.name;
       context['basePrice'] = _selectedProduct!.basePrice;
-      context['currentPrice'] = _currentPrice;
+      final quantity = context['quantity'] as int? ?? 1;
+      context['currentPrice'] = calculateTotalPrice(context['basePrice'], quantity);
     }
 
-    // Adiciona informações calculadas
-    final quantity = _formData['quantity'] as int? ?? 1;
-    context['quantity'] = quantity;
-
-    final deliveryDate = getFieldValue<DateTime>('deliveryDate');
+    final deliveryDate = context['deliveryDate'] as DateTime?;
     if (deliveryDate != null) {
       final deliveryDays = deliveryDate.difference(DateTime.now()).inDays;
       context['deliveryDays'] = deliveryDays;
@@ -274,13 +244,14 @@ class FormController<T extends Product> extends ChangeNotifier with ValidatorMix
 
   /// Reseta o formulário
   void resetForm() {
+
+
     _formData.clear();
     _fieldErrors.clear();
     _fieldVisibility.clear();
     _selectedProduct = null;
     _currentPrice = 0.0;
     _hasChanges = false;
-    _deliveryDate = null;
     notifyListeners();
   }
 }

@@ -11,6 +11,7 @@ class IndustrialProduct extends Product {
     required super.description,
     required super.basePrice,
     required super.category,
+    required super.discountVip,
     super.isActive,
     super.createdAt,
     super.updatedAt,
@@ -21,30 +22,30 @@ class IndustrialProduct extends Product {
 
   @override
   List<String> getRequiredFields() {
-    return ['voltage', 'certification', 'powerConsumption', 'quantity', 'deliveryDate'];
+    return ['voltage', 'certification', 'powerConsumption', 'quantity', 'discountCode', 'deliveryDate'];
   }
 
   @override
   List<String> validate(Map<String, dynamic> formData) {
     List<String> errors = [];
-    
+
     // Certificação obrigatória para voltagem > 220V
     if (voltage > 220 && (certification.isEmpty || formData['certification']?.toString().isEmpty == true)) {
       errors.add('Certificação é obrigatória para produtos com voltagem superior a 220V');
     }
-    
+
     // Validar voltagem
     final inputVoltage = formData['voltage'] as int?;
     if (inputVoltage != null && inputVoltage <= 0) {
       errors.add('Voltagem deve ser maior que zero');
     }
-    
+
     return errors;
   }
 
   @override
   List<String> getApplicableRules() {
-    return ['volume_discount', 'urgency_fee', 'certification_required', 'high_voltage_fee'];
+    return ['volume_discount', 'show_discount_code_field', 'urgency_fee', 'certification_required', 'high_voltage_fee'];
   }
 
   @override

@@ -11,6 +11,7 @@ class ResidentialProduct extends Product {
     required super.description,
     required super.basePrice,
     required super.category,
+    required super.discountVip,
     super.isActive,
     super.createdAt,
     super.updatedAt,
@@ -21,7 +22,7 @@ class ResidentialProduct extends Product {
 
   @override
   List<String> getRequiredFields() {
-    return ['color', 'warranty', 'energyRating', 'quantity', 'deliveryDate'];
+    return ['color', 'warranty', 'energyRating', 'quantity', 'discountCode', 'deliveryDate'];
   }
 
   @override
@@ -45,7 +46,7 @@ class ResidentialProduct extends Product {
 
   @override
   List<String> getApplicableRules() {
-    return ['volume_discount', 'urgency_fee', 'energy_rating_discount'];
+    return ['volume_discount', 'show_discount_code_field', 'energy_rating_discount', 'energy_rating_discount'];
   }
 
   @override

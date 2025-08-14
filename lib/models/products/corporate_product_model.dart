@@ -11,6 +11,7 @@ class CorporateProduct extends Product {
     required super.description,
     required super.basePrice,
     required super.category,
+    required super.discountVip,
     super.isActive,
     super.createdAt,
     super.updatedAt,
@@ -21,7 +22,7 @@ class CorporateProduct extends Product {
 
   @override
   List<String> getRequiredFields() {
-    return ['licenseType', 'supportLevel', 'maxUsers', 'quantity', 'deliveryDate'];
+    return ['licenseType', 'supportLevel', 'maxUsers', 'quantity', 'discountCode', 'deliveryDate'];
   }
 
   @override
@@ -45,7 +46,7 @@ class CorporateProduct extends Product {
 
   @override
   List<String> getApplicableRules() {
-    return ['volume_discount', 'urgency_fee', 'support_level_fee'];
+    return ['volume_discount', 'show_discount_code_field', 'urgency_fee', 'support_level_fee'];
   }
 
   @override

@@ -102,9 +102,8 @@ class QuoteController extends ChangeNotifier with CalculatorMixin, FormatterMixi
     );
 
     _quotes.add(quote);
-    if (_currentFormController != null) {
-      _currentFormController!.resetForm();
-    }
+
+    _currentFormController!.resetForm();
 
     notifyListeners();
 

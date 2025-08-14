@@ -120,6 +120,8 @@ mixin FormatterMixin {
         return 'Certificação';
       case 'powerConsumption':
         return 'Consumo de Energia';
+      case 'discountCode':
+        return 'Desconto adicional';
       case 'color':
         return 'Cor';
       case 'warranty':

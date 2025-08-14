@@ -17,6 +17,7 @@ abstract class Product extends BaseModel {
   final String description;
   final String category;
   final double basePrice;
+  final double discountVip;
   final ProductType type;
   final bool isActive;
 
@@ -25,12 +26,14 @@ abstract class Product extends BaseModel {
     required this.name,
     required this.description,
     required this.basePrice,
+    required this.discountVip,
     required this.type,
     required this.category,
     this.isActive = true,
     super.createdAt,
     super.updatedAt,
   });
+
   /// Retorna os campos específicos que devem aparecer no formulário
   /// para este tipo de produto
   List<String> getRequiredFields();
@@ -65,6 +68,7 @@ abstract class Product extends BaseModel {
     required double basePrice,
     required ProductType type,
     required String category,
+    double discountVip = 0,
     bool isActive = true,
     Map<String, dynamic>? specificData,
   }) {
@@ -77,6 +81,7 @@ abstract class Product extends BaseModel {
           basePrice: basePrice,
           category: category,
           isActive: isActive,
+          discountVip: discountVip,
           voltage: specificData?['voltage'] ?? 220,
           certification: specificData?['certification'] ?? '',
           powerConsumption: specificData?['powerConsumption'] ?? 0.0,
@@ -89,6 +94,7 @@ abstract class Product extends BaseModel {
           basePrice: basePrice,
           category: category,
           isActive: isActive,
+          discountVip: discountVip,
           color: specificData?['color'] ?? 'Branco',
           warranty: specificData?['warranty'] ?? 12,
           energyRating: specificData?['energyRating'] ?? 'A',
@@ -101,6 +107,7 @@ abstract class Product extends BaseModel {
           basePrice: basePrice,
           category: category,
           isActive: isActive,
+          discountVip: discountVip,
           licenseType: specificData?['licenseType'] ?? 'Standard',
           supportLevel: specificData?['supportLevel'] ?? 'Basic',
           maxUsers: specificData?['maxUsers'] ?? 10,
